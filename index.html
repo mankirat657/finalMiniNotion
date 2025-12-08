@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Productivity-Manager</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.css"
+      integrity="sha512-kJlvECunwXftkPwyvHbclArO8wszgBGisiLeuDFwNM8ws+wKIw0sv1os3ClWZOcrEB2eRXULYUsm8OVRGJKwGA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+  <body>
+    <main>
+      <div id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <div class="letter">M</div>
+            <p>kirat's Workspace</p>
+          </div>
+          <div class="sidebar-options">
+            <div class="option" data-toolTip="close sidebar">
+              <i class="ri-arrow-left-double-fill"></i>
+            </div>
+            <div class="option" data-toolTip="create a new page">
+              <i class="ri-file-add-fill"></i>
+            </div>
+            <div class="option" data-toolTip="more options">
+              <i class="ri-arrow-down-s-line"></i>
+            </div>
+          </div>
+        </div>
+        <div class="navgation-options">
+          <div
+            class="side-options"
+            data-toolTip="Search and quickly jump to a page"
+          >
+            <i class="ri-search-2-line"></i>
+            <p>Search</p>
+          </div>
+          <div
+            class="side-options"
+            data-toolTip="Recent pages, upcoming events and more"
+          >
+            <i class="ri-home-9-line"></i>
+            <p>Home</p>
+          </div>
+        </div>
+        <div class="createPage">
+          <div class="page-options private">
+            <p>Private</p>
+            <div class="features">
+              <div class="feat-1">
+                <i class="ri-more-2-line"></i>
+              </div>
+              <div id="addPage" class="feat-2" data-toolTip="add a page">
+                <i class="ri-add-fill"></i>
+              </div>
+            </div>
+          </div>
+          <!--append pages tab here-->
+          <!-- <div class="page-options">
+            <i class="ri-pages-fill"></i>
+            <p>New Page</p>
+          </div> -->
+        </div>
+        <div id="maximize">
+          <i class="ri-expand-left-right-fill"></i>
+        </div>
+      </div>
+      <div id="editor">
+        <div id="editor-header">
+          <div class="editor-header-logo">
+            <div id="editor-header-title" class="editor-header-title">
+              <p>New Page</p>
+
+              <div class="editbox">
+                <div class="pageicon">
+                  <i class="ri-pages-fill"></i>
+                </div>
+                <input type="text" />
+              </div>
+            </div>
+            <div class="editor-privacy" data-toolTip="only you have access">
+              <i class="ri-git-repository-private-line"></i>
+              <p>Private</p>
+              <i class="ri-arrow-down-s-line"></i>
+            </div>
+          </div>
+          <div class="exclusives">
+            <p>Share</p>
+            <i class="ri-star-s-line"></i>
+            <div class="feat-1">
+              <i class="ri-more-2-line"></i>
+            </div>
+          </div>
+        </div>
+        <div class="bannerOptions">
+          <div class="b-options addIcon">
+            <i class="ri-emotion-happy-fill"></i>
+            <p>Add Icon</p>
+          </div>
+
+          <div class="b-options addCover">
+            <i class="ri-landscape-fill"></i>
+            <p>Add Cover</p>
+          </div>
+          <div class="b-options">
+            <i class="ri-message-3-fill"></i>
+            <p>Add Comment</p>
+          </div>
+        </div>
+        <div class="editor-content"></div>
+      </div>
+      <div id="toolTip"></div>
+      <div id="ctrlSave">Changes Saved</div>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>
