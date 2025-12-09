@@ -237,7 +237,7 @@ body i {
 }
 .initialText {
   outline: none;
-  color: var(--primaryColor);
+  color: var(--textPrimary);
   font-size: 2.5rem;
   padding-top: var(--space-xs);
   z-index: 2;
@@ -469,4 +469,36 @@ body i {
   width: 100%;
   height: 100%;
   border-radius: var(--rounded-full);
+}
+.block {
+  color: var(--textMuted);
+  outline: none;
+  padding-top: var(--space-xs);
+  position: relative;
+}
+.basicOptions {
+  background-color: var(--glassEffect);
+  backdrop-filter: blur(5px);
+  padding: var(--space-xs);
+  width: fit-content;
+  color: var(--textMuted);
+  flex-direction: column;
+  border-radius: var(--rounded-s);
+  border: 1.3px solid var(--verylightBackgroundtwo);
+  display: none;
+  position: absolute;
+  height: 26vh;
+  overflow: auto;
+}
+.basicOptions .op {
+  padding: var(--space-xs) var(--space-s);
+  display: flex;
+  align-items: center;
+  border-radius: var(--rounded-s);
+  gap: var(--space-xs);
+}
+.basicOptions .op:hover {
+  background-color: var(--verylightBackgroundtwo);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
 }

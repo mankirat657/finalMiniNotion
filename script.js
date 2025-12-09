@@ -19,6 +19,7 @@ const editorContent = document.querySelector(".editor-content");
 const bannerOption = document.querySelector(".bannerOptions");
 const addCoverOptions = document.querySelector(".addCover");
 const addIconOptions = document.querySelector(".addIcon");
+const basicOption = document.querySelector(".basicOptions");
 let pages = JSON.parse(localStorage.getItem("pages")) || [];
 let pageObj = null;
 let currentBindTitle = null;
@@ -95,6 +96,14 @@ private.addEventListener("mouseleave", () => {
 });
 
 function pageCreate() {
+  const oldBanner = editor.querySelector(".banner");
+  if (oldBanner) {
+    oldBanner.remove();
+  }
+  const oldIcon = editor.querySelector(".icon");
+  if (oldIcon) {
+    oldIcon.remove();
+  }
   editorContent.innerText = "";
   editerHeader.style.opacity = 1;
 
@@ -270,13 +279,32 @@ function saveContent(pageIndex, content) {
       }, 2000);
 
       localStorage.setItem("pages", JSON.stringify(pages));
+      AddBlocks();
     } else if (e.key === "Enter" && pageIndex) {
       pages[pageIndex].contents[0].title = content;
       localStorage.setItem("pages", JSON.stringify(pages));
     }
   });
 }
-
+/*function to make mulitple blocks with different options */
+function AddBlocks() {
+  const block = document.createElement("div");
+  block.contentEditable = true;
+  block.classList.add("block");
+  editorContent.appendChild(block);
+  block.focus();
+  block.addEventListener("keydown", (e) => {
+    const rect = block.getBoundingClientRect();
+    if (e.key === "/") {
+      basicOption.style.display = "flex";
+      basicOption.style.top = rect.top + 30 + "px";
+    }
+  });
+  document.body.addEventListener("click", (e) => {
+    e.stopPropagation();
+    basicOption.style.display = "none";
+  });
+}
 /* page creation button */
 addPage.addEventListener("click", () => {
   pageCreate();
@@ -347,7 +375,11 @@ function displayPages() {
         img.src = findPage?.icon;
         IconElem.appendChild(img);
         IconElem.classList.add("icon");
-        currentBanner.appendChild(IconElem);
+        if (currentBanner) {
+          currentBanner.appendChild(IconElem);
+        } else {
+          editorContent.parentNode.insertBefore(IconElem, editorContent);
+        }
       }
       findPage.contents.forEach((page) => {
         if (page.type === "h1") {
