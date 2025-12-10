@@ -20,10 +20,25 @@ const bannerOption = document.querySelector(".bannerOptions");
 const addCoverOptions = document.querySelector(".addCover");
 const addIconOptions = document.querySelector(".addIcon");
 const basicOption = document.querySelector(".basicOptions");
+const headingOne = document.querySelector(".headingOne");
+const headingTwo = document.querySelector(".headingTwo");
+const headingThree = document.querySelector(".headingThree");
+const list = document.querySelector(".list");
+const code = document.querySelector(".code");
+const checkboxContent = document.querySelector(".checkboxContent");
+const searchTab = document.querySelector(".side-options");
+const searchBar = document.querySelector(".editor-search-bar");
+const searchInput = document.querySelector("#SearchInput");
+const searchArea = document.querySelector(".searched-pages");
+const pageOptions = document.querySelectorAll(".page-options");
 let pages = JSON.parse(localStorage.getItem("pages")) || [];
 let pageObj = null;
 let currentBindTitle = null;
 let currentTitleElement = null;
+let activeBlock = null;
+let activeDesc = "";
+let currentPageIndex = null;
+
 /*utility functions */
 const id = () => `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
@@ -266,23 +281,50 @@ function autoSliceTitle(text, sidebarWidth) {
 }
 
 /* saveContent function */
-function saveContent(pageIndex, content) {
+function saveContent(pageIndex, content, type, id) {
   console.log(pageIndex);
+  console.log(id);
+
+  const contentIndex = pages[pageIndex]?.contents.findIndex((f) => f.id == id);
+  console.log(contentIndex);
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || (e.ctrlKey && e.key === "s")) {
+    if (e.key === "Enter" && !e.ctrlKey) {
       e.preventDefault();
+      localStorage.setItem("pages", JSON.stringify(pages));
 
+      if (pageIndex !== undefined) {
+        if (type === "title") {
+          pages[pageIndex].contents[0].title = content;
+          localStorage.setItem("pages", JSON.stringify(pages));
+        }
+
+        if (contentIndex !== -1 && type === "H-1") {
+          pages[pageIndex].contents[contentIndex].desc = content;
+          localStorage.setItem("pages", JSON.stringify(pages));
+        }
+        if (contentIndex !== -1 && type === "H-2") {
+          pages[pageIndex].contents[contentIndex].desc = content;
+          localStorage.setItem("pages", JSON.stringify(pages));
+        }
+        if (contentIndex !== -1 && type === "H-3") {
+          pages[pageIndex].contents[contentIndex].desc = content;
+          localStorage.setItem("pages", JSON.stringify(pages));
+        }
+        if (contentIndex !== -1 && type === "code") {
+          pages[pageIndex].contents[contentIndex].desc = content;
+          localStorage.setItem("pages", JSON.stringify(pages));
+        }
+        if (contentIndex !== -1 && type === "List") {
+          localStorage.setItem("pages", JSON.stringify(pages));
+          pages[pageIndex].contents[contentIndex].desc = content;
+        }
+      }
+      AddBlocks();
       ctrlSave.style.right = "1%";
       setTimeout(() => {
         ctrlSave.style.right = "-100%";
       }, 2000);
-
-      localStorage.setItem("pages", JSON.stringify(pages));
-      AddBlocks();
-    } else if (e.key === "Enter" && pageIndex) {
-      pages[pageIndex].contents[0].title = content;
-      localStorage.setItem("pages", JSON.stringify(pages));
     }
   });
 }
@@ -291,20 +333,146 @@ function AddBlocks() {
   const block = document.createElement("div");
   block.contentEditable = true;
   block.classList.add("block");
+  block.dataset.id = id();
   editorContent.appendChild(block);
   block.focus();
   block.addEventListener("keydown", (e) => {
     const rect = block.getBoundingClientRect();
     if (e.key === "/") {
+      e.preventDefault();
       basicOption.style.display = "flex";
       basicOption.style.top = rect.top + 30 + "px";
+      activeBlock = block;
     }
   });
+
   document.body.addEventListener("click", (e) => {
-    e.stopPropagation();
     basicOption.style.display = "none";
   });
 }
+
+/*event listeners of basic options */
+headingOne.addEventListener("click", () => {
+  console.log(activeDesc);
+  if (!activeBlock) return;
+  const blockId = activeBlock.dataset.id;
+  activeBlock.className = "block H-1";
+  basicOption.style.display = "none";
+  activeBlock.addEventListener("input", (e) => {
+    saveOptions(blockId, activeBlock.innerHTML.trim(), "H-1");
+  });
+});
+function saveOptions(id, data, type) {
+  const index = pageObj.contents.findIndex((item) => item.id == id);
+
+  if (index !== -1) {
+    pageObj.contents[index].desc = data;
+  } else {
+    pageObj.contents.push({
+      id: id,
+      type: type,
+      desc: data,
+    });
+  }
+
+  localStorage.setItem("pages", JSON.stringify(pages));
+}
+
+headingTwo.addEventListener("click", () => {
+  if (!activeBlock) return;
+  const blockId = activeBlock.dataset.id;
+  activeBlock.className = "block H-2";
+  basicOption.style.display = "none";
+  activeBlock.addEventListener("input", (e) => {
+    saveOptions(blockId, activeBlock.innerHTML.trim(), "H-2");
+  });
+});
+
+headingThree.addEventListener("click", () => {
+  if (!activeBlock) return;
+  const blockId = activeBlock.dataset.id;
+  activeBlock.className = "block H-3";
+  basicOption.style.display = "none";
+  activeBlock.addEventListener("input", (e) => {
+    saveOptions(blockId, activeBlock.innerHTML.trim(), "H-3");
+  });
+});
+list.addEventListener("click", () => {
+  if (!activeBlock) return;
+
+  const blockId = activeBlock.dataset.id;
+
+  activeBlock.className = "block List-Type";
+  basicOption.style.display = "none";
+
+  activeBlock.innerHTML = "<ul><li></li></ul>";
+
+  const li = activeBlock.querySelector("li");
+  li.focus();
+
+  activeBlock.addEventListener("input", () => {
+    const text = li.innerText.trim();
+    saveOptions(blockId, text, "List");
+  });
+});
+checkboxContent.addEventListener("click", (e) => {
+  checkboxContent.addEventListener("click", () => {
+    if (!activeBlock) return;
+
+    const blockId = activeBlock.dataset.id;
+
+    activeBlock.className = "block checkbox-type";
+    basicOption.style.display = "none";
+
+    // Create checkbox HTML
+    activeBlock.innerHTML = `
+    <div class="checkbox-item">
+      <input type="checkbox" class="check-input" />
+      <span class="check-text" contenteditable="true"></span>
+    </div>
+  `;
+
+    const checkInput = activeBlock.querySelector(".check-input");
+    const checkText = activeBlock.querySelector(".check-text");
+
+    checkText.focus();
+
+    saveOptions(blockId, { text: "", checked: false }, "checkbox");
+
+    checkText.addEventListener("input", () => {
+      console.log(checkText.innerText``);
+
+      saveOptions(
+        blockId,
+        {
+          text: checkText.innerText.trim(),
+          checked: checkInput.checked,
+        },
+        "checkbox"
+      );
+    });
+
+    checkInput.addEventListener("change", () => {
+      saveOptions(
+        blockId,
+        {
+          text: checkText.innerText.trim(),
+          checked: checkInput.checked,
+        },
+        "checkbox"
+      );
+    });
+  });
+});
+code.addEventListener("click", () => {
+  if (!activeBlock) return;
+  const blockId = activeBlock.dataset.id;
+  activeBlock.className = "block code";
+  basicOption.style.display = "none";
+  activeBlock.addEventListener("input", (e) => {
+    saveOptions(blockId, activeBlock.innerHTML.trim(), "code");
+  });
+});
 /* page creation button */
 addPage.addEventListener("click", () => {
   pageCreate();
@@ -409,11 +577,119 @@ function displayPages() {
             saveContent(pageIndex, content);
           });
         }
+        if (page.type === "H-1") {
+          const block = document.createElement("div");
+          block.dataset.id = page.id;
+          block.innerHTML = page.type === "H-1" ? page?.desc : "";
+          block.className = page.type === "H-1" ? `${page?.type} block` : "";
+          block.contentEditable = true;
+          editorContent.appendChild(block);
+          block.addEventListener("input", (e) => {
+            const content = block.innerHTML;
+
+            saveContent(pageIndex, content, "H-1", page.id);
+          });
+        }
+        if (page.type === "H-2") {
+          const block = document.createElement("div");
+          block.dataset.id = page.id;
+          block.innerHTML = page.type === "H-2" ? page?.desc : "";
+          block.className = page.type === "H-2" ? `${page?.type} block` : "";
+          block.contentEditable = true;
+          editorContent.appendChild(block);
+          block.addEventListener("input", (e) => {
+            const content = block.innerHTML;
+            saveContent(pageIndex, content, "H-2", page.id);
+          });
+        }
+        if (page.type === "H-3") {
+          const block = document.createElement("div");
+          block.dataset.id = page.id;
+          block.innerHTML = page.type === "H-3" ? page?.desc : "";
+          block.className = page.type === "H-3" ? `${page?.type} block` : "";
+          block.contentEditable = true;
+          editorContent.appendChild(block);
+          block.addEventListener("input", (e) => {
+            const content = block.innerHTML;
+            saveContent(pageIndex, content, "H-3", page.id);
+          });
+        }
+        if (page.type === "code") {
+          const block = document.createElement("div");
+          block.dataset.id = page.id;
+          block.innerHTML = page.type === "code" ? page?.desc : "";
+          block.className = page.type === "code" ? `${page?.type} block` : "";
+          block.contentEditable = true;
+          editorContent.appendChild(block);
+          block.addEventListener("input", (e) => {
+            const content = block.innerHTML;
+            saveContent(pageIndex, content, "code", page.id);
+          });
+        }
+        if (page.type === "List") {
+          const block = document.createElement("div");
+          block.dataset.id = page.id;
+          block.innerHTML =
+            page.type === "List" ? `<ul><li>${page.desc}</li></ul>` : "";
+          block.className = page.type === "List" ? `block List-Type` : "";
+          block.contentEditable = true;
+          editorContent.appendChild(block);
+          block.addEventListener("input", (e) => {
+            const content = block.innerHTML;
+            saveContent(pageIndex, content, "List", page.id);
+          });
+        }
       });
     });
   });
 }
+function searchEnable() {
+  searchTab.addEventListener("click", (e) => {
+    e.stopPropagation();
+    searchBar.style.display = "block";
+  });
+  searchBar.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+  document.body.addEventListener("click", (e) => {
+    searchBar.style.display = "none";
+  });
+  searchInput.addEventListener("input", (e) => {
+    const value = e.target.value.trim().toLowerCase();
 
+    // Clear results
+    searchArea.innerHTML = "";
+
+    if (value === "") return;
+
+    const searchedPage = pages.find((p) =>
+      p.contents[0].title.toLowerCase().includes(value)
+    );
+
+    function highlight(text, keyword) {
+      const regex = new RegExp(`(${keyword})`, "ig");
+      return text.replace(regex, `<span class="highlight">$1</span>`);
+    }
+
+    if (searchedPage) {
+      const pageElem = document.createElement("div");
+      pageElem.className = "pages";
+      pageElem.id = searchedPage.id;
+
+      pageElem.innerHTML = `
+      <i class="ri-pages-line"></i>
+      <p>${highlight(searchedPage.contents[0].title, value)}</p>
+    `;
+
+      pageElem.addEventListener("click", () => {
+        console.log("clicked", searchedPage.id);
+      });
+
+      searchArea.appendChild(pageElem);
+    }
+  });
+}
+searchEnable();
 maximizeSidebar();
 toolTipGenerator(dataTooltip);
 editorHeaderChange();

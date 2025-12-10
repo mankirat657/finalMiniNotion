@@ -5,41 +5,43 @@
   box-sizing: border-box;
 }
 :root {
-  /* ===== BACKGROUND SYSTEM ===== */
-  --primaryBackground: #0f1419;
-  --secondaryBackground: #161b22;
-  --verylightBackground: #1f2937;
-  --verylightBackgroundtwo: #293648;
-  --lightBackground: #11151e;
-  --darkbackground: #020617;
-  --verydarkBackground: #020617;
+  /* BACKGROUND COLORS */
+  --primaryBackground: #0a0f14;
+  --secondaryBackground: #0f1720;
+  --verylightBackground: #1a2633;
+  --verylightBackgroundtwo: #20304a;
+  --lightBackground: #0d121a;
+  --darkbackground: #050810;
+  --verydarkBackground: #020409;
   --veryverydarkBackground: #000000;
-  --glassEffect: #0000004a;
-  /* ===== BRAND COLORS (SOFT & PREMIUM) ===== */
-  --primaryColor: #7c7cff;
-  --secondaryColor: #5cc8ff;
-  --accentColor: #4ade80;
-  --warningColor: #fbbf24;
-  --dangerColor: #f87171;
+  --glassEffect: #18202f80;
+  /*BRAND COLORS */
+  --primaryColor: #00f0ff;
+  --secondaryColor: #14ffd6;
+  --accentColor: #ff3f81;
+  --warningColor: #ffd700;
+  --dangerColor: #ff4c4c;
+  --successColor: #32ff7e;
+  --infoColor: #1e90ff;
 
-  /* ===== TEXT SYSTEM ===== */
-  --textPrimary: #f1f5f9;
-  --textSecondary: #c7d2fe;
-  --textMuted: #9ca3af;
+  --textPrimary: #e0f7ff;
+  --textSecondary: #81e6d9;
+  --textMuted: #7b8ca1;
   --textWhite: #ffffff;
+  --textAccent: #ff6ec7;
 
-  /* ===== BORDERS & SHADOWS ===== */
+  /* BORDERS & SHADOWS =*/
   --borderPrimary: #2a384c;
 
   --shadowSoft: 0 4px 18px rgba(0, 0, 0, 0.35);
   --shadowStrong: 0 10px 35px rgba(0, 0, 0, 0.55);
 
-  /* ===== UI FEEDBACK COLORS ===== */
+  /* UI FEEDBACK COLORS  */
   --focusColor: #38bdf8;
   --progressColor: #22c55e;
   --taskHover: rgba(124, 124, 255, 0.12);
 
-  /* ===== SPACING SYSTEM ===== */
+  /* SPACING SYSTEM*/
   --space-xsx: 0.25rem;
   --space-xs: 0.5rem;
   --space-s: 1rem;
@@ -50,7 +52,7 @@
   --space-3xl: 5rem;
   --space-4xl: 6rem;
 
-  /* ===== BORDER RADIUS ===== */
+  /*  BORDER RADIUS  */
   --rounded-xs: 4px;
   --rounded-s: 8px;
   --rounded-m: 12px;
@@ -74,11 +76,13 @@ main {
 }
 #sidebar {
   width: 24%;
-  height: 100%;
+  height: 100vh;
   background-color: var(--secondaryBackground);
   border: 1.3px solid var(--borderPrimary);
   padding: var(--space-xs);
-  position: relative;
+  position: sticky;
+  top: 0;
+  left: 0;
   transition: all 0.1s ease-in-out;
 }
 .sidebar-header {
@@ -488,6 +492,7 @@ body i {
   display: none;
   position: absolute;
   height: 26vh;
+  z-index: 200;
   overflow: auto;
 }
 .basicOptions .op {
@@ -501,4 +506,91 @@ body i {
   background-color: var(--verylightBackgroundtwo);
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+}
+.H-1 {
+  font-size: 1.5rem;
+}
+.H-2 {
+  font-size: 1rem;
+}
+.H-3 {
+  font-size: 0.75rem;
+}
+.code {
+  font-family: monospace !important;
+}
+.editor-search-bar {
+  position: fixed;
+  width: 70vw;
+  height: 30vh;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--glassEffect);
+  backdrop-filter: blur(5px);
+  border-radius: var(--rounded-m);
+  border: 1.3px solid var(--borderPrimary);
+  box-shadow: var(--shadowStrong);
+  display: none;
+  z-index: 2000;
+}
+.search-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-s);
+}
+.search-header .filter {
+  padding: var(--space-xsx);
+  border-radius: var(--rounded-xs);
+}
+.search-header .filter:hover {
+  background-color: var(--verylightBackground);
+  cursor: pointer;
+}
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+}
+.search i {
+  font-size: 1.3rem;
+}
+.search input {
+  background-color: transparent;
+  outline: none;
+  border: none;
+  width: 100%;
+  font-size: 1.3rem;
+  color: var(--textMuted);
+}
+.searched-pages {
+  padding: 0 var(--space-s);
+  display: flex;
+  flex-direction: column;
+}
+.searched-pages .pages {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.searched-pages .pages {
+  color: var(--textMuted);
+  font-size: 0.9rem;
+  width: 100%;
+  font-weight: 500;
+  padding: var(--space-xs);
+  border-radius: var(--rounded-s);
+}
+.searched-pages .pages:hover {
+  cursor: pointer;
+  background-color: var(--verylightBackgroundtwo);
+}
+.highlight {
+  color: var(--primaryColor);
+  font-weight: bold;
+  background: none;
 }
