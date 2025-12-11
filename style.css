@@ -102,7 +102,7 @@ main {
   height: 100vh;
   background-color: var(--secondaryBackground);
   border: 1.3px solid var(--borderPrimary);
-  padding: var(--space-xs);
+  padding: 0 var(--space-xs);
   position: sticky;
   top: 0;
   left: 0;
@@ -629,4 +629,57 @@ body i {
 .darklightmode:hover {
   background-color: var(--verylightBackground);
   cursor: pointer;
+}
+.block[draggable="true"] {
+  cursor: grab;
+  position: relative;
+}
+
+.block[draggable="true"].dragging {
+  cursor: grabbing;
+  opacity: 0.9;
+  background-color: var(--borderPrimary);
+  box-shadow: 0 4px 12px var(--borderPrimary);
+  border-radius: 4px;
+}
+
+.block.drop-target {
+  position: relative;
+}
+
+.block.drop-target::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  right: 0;
+  top: -2px;
+  height: 2px;
+  background-color: var(--borderPrimary);
+  border-radius: 999px;
+}
+.block.drop-target::after {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: -5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 2px solid var(--verylightBackgroundtwo);
+  background-color: var(--secondaryBackground);
+}
+.editor-content ul,
+.editor-content ul li {
+  list-style-type: disc;
+  list-style-position: outside;
+  margin-left: 0.5rem;
+  padding-left: 0;
+}
+
+.editor-content ul {
+  list-style: disc outside;
+}
+
+.editor-content ul li {
+  display: list-item;
 }

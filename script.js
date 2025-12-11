@@ -3,6 +3,7 @@ let isResize = false;
 const sidebar = document.querySelector("#sidebar");
 const min = 307;
 const max = 460;
+
 const dataTooltip = document.querySelectorAll("[data-toolTip]");
 const toolTip = document.querySelector("#toolTip");
 const private = document.querySelector(".private");
@@ -32,6 +33,7 @@ const searchInput = document.querySelector("#SearchInput");
 const searchArea = document.querySelector(".searched-pages");
 const pageOptions = document.querySelectorAll(".page-options");
 const themeToggle = document.querySelector(".darklightmode");
+
 let pages = JSON.parse(localStorage.getItem("pages")) || [];
 let pageObj = null;
 let currentBindTitle = null;
@@ -40,9 +42,14 @@ let activeBlock = null;
 let activeDesc = "";
 let currentPageIndex = null;
 
+/* drag state */
+let draggedBlock = null;
+let currentDropTarget = null;
+
 /*utility functions */
 const id = () => `page-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
+/* sidebar resize */
 function maximizeSidebar() {
   const resizeHandle = document.querySelector("#maximize");
 
@@ -68,12 +75,10 @@ function maximizeSidebar() {
     const allBindTitles = document.querySelectorAll(".bindTitle");
     const currentTitle = pageObj?.contents[0]?.title || "";
     allBindTitles.forEach((bindTitle) => {
-      // Find which page this tab belongs to
       const pageOptions = bindTitle.closest(".page-options");
       const pageId = pageOptions?.id;
       const page = pages.find((p) => p.id === pageId);
       const pageTitle = page?.contents[0]?.title || currentTitle;
-
       bindTitle.innerText = autoSliceTitle(pageTitle, newWidth);
     });
 
@@ -87,6 +92,7 @@ function maximizeSidebar() {
   });
 }
 
+/* tooltip */
 function toolTipGenerator(dataTooltip) {
   dataTooltip.forEach((item) => {
     const content = item.dataset.tooltip;
@@ -111,6 +117,7 @@ private.addEventListener("mouseleave", () => {
   features.style.opacity = 0;
 });
 
+/* page create */
 function pageCreate() {
   const oldBanner = editor.querySelector(".banner");
   if (oldBanner) {
@@ -128,7 +135,7 @@ function pageCreate() {
   HeadingOne.classList.add("initialText");
   editorContent.appendChild(HeadingOne);
   HeadingOne.focus();
-  // banner, logo functionality
+
   attachBannerHover(HeadingOne);
   bannerOption.addEventListener("mouseleave", () => {
     bannerOption.style.display = "none";
@@ -185,6 +192,7 @@ function attachBannerHover(h1) {
   });
 }
 
+/* cover & icon */
 addCoverOptions.addEventListener("click", () => {
   const existingBanner = editor.querySelector(".banner");
   if (existingBanner) return;
@@ -208,7 +216,6 @@ addIconOptions.addEventListener("click", () => {
   if (oldIcon) oldIcon.remove();
 
   const existingBanner = editor.querySelector(".banner");
-
   const IconElem = document.createElement("div");
   const img = document.createElement("img");
 
@@ -230,6 +237,7 @@ addIconOptions.addEventListener("click", () => {
   }
 });
 
+/* header title edit */
 function editorHeaderChange() {
   headEditTitle.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -247,7 +255,6 @@ function editorHeaderChange() {
     }
   });
 
-  // typing in edit box updates current page title
   editboxInput.addEventListener("input", () => {
     const editBoxValue = editboxInput.value;
 
@@ -271,13 +278,12 @@ function editorHeaderChange() {
     localStorage.setItem("pages", JSON.stringify(pages));
   });
 
-  // close edit box on outside click
   document.addEventListener("click", () => {
     editbox.style.display = "none";
   });
 }
 
-/* adding pages in the tab */
+/* title slicing */
 function autoSliceTitle(text, sidebarWidth) {
   const charsPer100px = 12;
   const allowedChars = Math.floor((sidebarWidth / 100) * charsPer100px);
@@ -289,7 +295,7 @@ function autoSliceTitle(text, sidebarWidth) {
   return text;
 }
 
-/* saveContent function */
+/* saveContent */
 function saveContent(pageIndex, content, type, id) {
   const page = pages[pageIndex];
   if (!page) {
@@ -311,21 +317,82 @@ function saveContent(pageIndex, content, type, id) {
   localStorage.setItem("pages", JSON.stringify(pages));
 }
 
-/* mulitple blocks with different options */
+/* DRAG HELPERS */
+function handleDragStart(e) {
+  draggedBlock = e.target;
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/plain", draggedBlock.dataset.id);
+  draggedBlock.classList.add("dragging");
+}
+
+function handleDragEnd() {
+  if (draggedBlock) {
+    draggedBlock.classList.remove("dragging");
+    draggedBlock = null;
+  }
+  if (currentDropTarget) {
+    currentDropTarget.classList.remove("drop-target");
+    currentDropTarget = null;
+  }
+}
+
+function getDragAfterElement(container, y) {
+  const draggableElements = [
+    ...container.querySelectorAll(".block[draggable='true']:not(.dragging)"),
+  ];
+
+  let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+
+  draggableElements.forEach((child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - (box.top + box.height / 2);
+    if (offset < 0 && offset > closest.offset) {
+      closest = { offset, element: child };
+    }
+  });
+
+  return closest.element;
+}
+
+function updateOrderFromDOM() {
+  if (!pageObj) return;
+
+  const blocks = [
+    ...editorContent.querySelectorAll(".block[draggable='true']"),
+  ];
+  const idOrder = blocks.map((b) => b.dataset.id);
+
+  const map = new Map(pageObj.contents.map((c) => [c.id, c]));
+  const newContents = [];
+
+  const titleBlock = pageObj.contents.find((c) => c.type === "h1");
+  if (titleBlock) newContents.push(titleBlock);
+
+  idOrder.forEach((bid) => {
+    const item = map.get(bid);
+    if (item && item !== titleBlock) newContents.push(item);
+  });
+
+  pageObj.contents = newContents;
+  if (currentPageIndex != null) {
+    pages[currentPageIndex] = pageObj;
+  }
+  localStorage.setItem("pages", JSON.stringify(pages));
+}
+
+/* AddBlocks: create new paragraph block + drag */
 function AddBlocks() {
   const block = document.createElement("div");
   block.contentEditable = true;
   block.classList.add("block");
   block.dataset.id = id();
+  block.setAttribute("draggable", "true");
   editorContent.appendChild(block);
 
   const blockId = block.dataset.id;
 
-  // save plain text (no basic option selected) as a paragraph block
   block.addEventListener("input", () => {
     const text = block.innerHTML.trim();
-
-    // find or create entry for this block
     const index = pageObj.contents.findIndex((item) => item.id == blockId);
     if (index !== -1) {
       pageObj.contents[index].desc = text;
@@ -338,9 +405,11 @@ function AddBlocks() {
         desc: text,
       });
     }
-
     localStorage.setItem("pages", JSON.stringify(pages));
   });
+
+  block.addEventListener("dragstart", handleDragStart);
+  block.addEventListener("dragend", handleDragEnd);
 
   block.focus();
   block.addEventListener("keydown", (e) => {
@@ -358,7 +427,7 @@ function AddBlocks() {
   });
 }
 
-/*event listeners of basic options */
+/* basic options */
 headingOne.addEventListener("click", () => {
   if (!activeBlock) return;
   const blockId = activeBlock.dataset.id;
@@ -485,7 +554,7 @@ addPage.addEventListener("click", () => {
   pageCreate();
 });
 
-/* main part display the page and tab */
+/* sidebar tabs */
 function displayTab() {
   const sidebarWidth = sidebar.getBoundingClientRect().width;
 
@@ -506,13 +575,13 @@ function displayTab() {
   displayPages();
 }
 
+/* display page + blocks */
 function displayPages() {
   const currentPages = document.querySelectorAll(".page-options");
   const pageExceptFirst = [...currentPages].slice(1);
 
   pageExceptFirst.forEach((item) => {
-    item.addEventListener("click", (e) => {
-      e.stopPropagation();
+    item.addEventListener("click", () => {
       editerHeader.style.opacity = 1;
       editorContent.innerHTML = "";
       const findPage = pages.find((f) => f.id === item.id);
@@ -588,9 +657,12 @@ function displayPages() {
         if (page.type === "H-1") {
           const block = document.createElement("div");
           block.dataset.id = page.id;
-          block.innerHTML = page.type === "H-1" ? page?.desc : "";
-          block.className = page.type === "H-1" ? `${page?.type} block` : "";
+          block.innerHTML = page.desc || "";
+          block.className = "H-1 block";
           block.contentEditable = true;
+          block.setAttribute("draggable", "true");
+          block.addEventListener("dragstart", handleDragStart);
+          block.addEventListener("dragend", handleDragEnd);
           editorContent.appendChild(block);
           block.addEventListener("input", () => {
             const content = block.innerHTML;
@@ -600,9 +672,12 @@ function displayPages() {
         if (page.type === "H-2") {
           const block = document.createElement("div");
           block.dataset.id = page.id;
-          block.innerHTML = page.type === "H-2" ? page?.desc : "";
-          block.className = page.type === "H-2" ? `${page?.type} block` : "";
+          block.innerHTML = page.desc || "";
+          block.className = "H-2 block";
           block.contentEditable = true;
+          block.setAttribute("draggable", "true");
+          block.addEventListener("dragstart", handleDragStart);
+          block.addEventListener("dragend", handleDragEnd);
           editorContent.appendChild(block);
           block.addEventListener("input", () => {
             const content = block.innerHTML;
@@ -612,9 +687,12 @@ function displayPages() {
         if (page.type === "H-3") {
           const block = document.createElement("div");
           block.dataset.id = page.id;
-          block.innerHTML = page.type === "H-3" ? page?.desc : "";
-          block.className = page.type === "H-3" ? `${page?.type} block` : "";
+          block.innerHTML = page.desc || "";
+          block.className = "H-3 block";
           block.contentEditable = true;
+          block.setAttribute("draggable", "true");
+          block.addEventListener("dragstart", handleDragStart);
+          block.addEventListener("dragend", handleDragEnd);
           editorContent.appendChild(block);
           block.addEventListener("input", () => {
             const content = block.innerHTML;
@@ -624,9 +702,12 @@ function displayPages() {
         if (page.type === "code") {
           const block = document.createElement("div");
           block.dataset.id = page.id;
-          block.innerHTML = page.type === "code" ? page?.desc : "";
-          block.className = page.type === "code" ? `${page?.type} block` : "";
+          block.innerHTML = page.desc || "";
+          block.className = "code block";
           block.contentEditable = true;
+          block.setAttribute("draggable", "true");
+          block.addEventListener("dragstart", handleDragStart);
+          block.addEventListener("dragend", handleDragEnd);
           editorContent.appendChild(block);
           block.addEventListener("input", () => {
             const content = block.innerHTML;
@@ -638,8 +719,11 @@ function displayPages() {
           block.dataset.id = page.id;
           block.innerHTML =
             page.type === "List" ? `<ul><li>${page.desc}</li></ul>` : "";
-          block.className = page.type === "List" ? `block List-Type` : "";
+          block.className = "block List-Type";
           block.contentEditable = true;
+          block.setAttribute("draggable", "true");
+          block.addEventListener("dragstart", handleDragStart);
+          block.addEventListener("dragend", handleDragEnd);
           editorContent.appendChild(block);
           block.addEventListener("input", () => {
             const content = block.innerHTML;
@@ -652,6 +736,9 @@ function displayPages() {
           block.innerHTML = page.desc || "";
           block.className = "block";
           block.contentEditable = true;
+          block.setAttribute("draggable", "true");
+          block.addEventListener("dragstart", handleDragStart);
+          block.addEventListener("dragend", handleDragEnd);
           editorContent.appendChild(block);
 
           block.addEventListener("input", () => {
@@ -665,12 +752,12 @@ function displayPages() {
             localStorage.setItem("pages", JSON.stringify(pages));
           });
         }
-
         if (page.type === "checkbox") {
           const block = document.createElement("div");
           block.dataset.id = page.id;
           block.className = "block checkbox-type";
           block.contentEditable = true;
+          block.setAttribute("draggable", "true");
           const checked = page.desc.checked ? "checked" : "";
           block.innerHTML = `
             <div class="checkbox-item">
@@ -680,6 +767,8 @@ function displayPages() {
               }</span>
             </div>
           `;
+          block.addEventListener("dragstart", handleDragStart);
+          block.addEventListener("dragend", handleDragEnd);
           editorContent.appendChild(block);
 
           const checkInput = block.querySelector(".check-input");
@@ -712,6 +801,37 @@ function displayPages() {
   });
 }
 
+/* drag over/drop on editorContent */
+editorContent.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  if (!draggedBlock) return;
+
+  const afterElement = getDragAfterElement(editorContent, e.clientY);
+
+  if (currentDropTarget) {
+    currentDropTarget.classList.remove("drop-target");
+    currentDropTarget = null;
+  }
+
+  if (afterElement == null) {
+    editorContent.appendChild(draggedBlock);
+  } else {
+    currentDropTarget = afterElement;
+    currentDropTarget.classList.add("drop-target");
+    editorContent.insertBefore(draggedBlock, afterElement);
+  }
+});
+
+editorContent.addEventListener("drop", (e) => {
+  e.preventDefault();
+  updateOrderFromDOM();
+  if (currentDropTarget) {
+    currentDropTarget.classList.remove("drop-target");
+    currentDropTarget = null;
+  }
+});
+
+/* search */
 function searchEnable() {
   searchTab.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -761,7 +881,7 @@ function searchEnable() {
   });
 }
 
-/* Enter handler */
+/* Enter handler: new block */
 document.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.ctrlKey) {
     if (!editor.contains(document.activeElement)) return;
@@ -778,6 +898,8 @@ document.addEventListener("keydown", (e) => {
     }, 2000);
   }
 });
+
+/* theme toggle */
 const savedTheme = localStorage.getItem("theme") || "dark";
 document.body.setAttribute("data-theme", savedTheme);
 if (themeToggle) {
@@ -799,6 +921,8 @@ if (themeToggle) {
         : '<i class="ri-moon-line"></i>';
   });
 }
+
+/* init */
 searchEnable();
 maximizeSidebar();
 toolTipGenerator(dataTooltip);
