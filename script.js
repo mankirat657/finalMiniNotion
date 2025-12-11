@@ -31,6 +31,7 @@ const searchBar = document.querySelector(".editor-search-bar");
 const searchInput = document.querySelector("#SearchInput");
 const searchArea = document.querySelector(".searched-pages");
 const pageOptions = document.querySelectorAll(".page-options");
+const themeToggle = document.querySelector(".darklightmode");
 let pages = JSON.parse(localStorage.getItem("pages")) || [];
 let pageObj = null;
 let currentBindTitle = null;
@@ -40,7 +41,7 @@ let activeDesc = "";
 let currentPageIndex = null;
 
 /*utility functions */
-const id = () => `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+const id = () => `page-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
 function maximizeSidebar() {
   const resizeHandle = document.querySelector("#maximize");
@@ -127,7 +128,7 @@ function pageCreate() {
   HeadingOne.classList.add("initialText");
   editorContent.appendChild(HeadingOne);
   HeadingOne.focus();
-  //banner,logo functionality
+  // banner, logo functionality
   attachBannerHover(HeadingOne);
   bannerOption.addEventListener("mouseleave", () => {
     bannerOption.style.display = "none";
@@ -168,8 +169,9 @@ function pageCreate() {
   });
 
   pages.push(pageObj);
-  saveContent();
+  localStorage.setItem("pages", JSON.stringify(pages));
 }
+
 function attachBannerHover(h1) {
   h1.addEventListener("mouseenter", () => {
     bannerOption.style.display = "flex";
@@ -198,7 +200,9 @@ addCoverOptions.addEventListener("click", () => {
   }
   editor.insertBefore(bannerElem, editorContent);
   pageObj.thumbnail = img.src;
+  localStorage.setItem("pages", JSON.stringify(pages));
 });
+
 addIconOptions.addEventListener("click", () => {
   const oldIcon = editor.querySelector(".icon");
   if (oldIcon) oldIcon.remove();
@@ -220,7 +224,10 @@ addIconOptions.addEventListener("click", () => {
     editorContent.parentNode.insertBefore(IconElem, editorContent);
   }
 
-  if (pageObj) pageObj.icon = img.src;
+  if (pageObj) {
+    pageObj.icon = img.src;
+    localStorage.setItem("pages", JSON.stringify(pages));
+  }
 });
 
 function editorHeaderChange() {
@@ -260,6 +267,8 @@ function editorHeaderChange() {
     if (currentTitleElement) {
       currentTitleElement.innerText = editBoxValue;
     }
+
+    localStorage.setItem("pages", JSON.stringify(pages));
   });
 
   // close edit box on outside click
@@ -282,59 +291,57 @@ function autoSliceTitle(text, sidebarWidth) {
 
 /* saveContent function */
 function saveContent(pageIndex, content, type, id) {
-  console.log(pageIndex);
-  console.log(id);
+  const page = pages[pageIndex];
+  if (!page) {
+    localStorage.setItem("pages", JSON.stringify(pages));
+    return;
+  }
 
-  const contentIndex = pages[pageIndex]?.contents.findIndex((f) => f.id == id);
-  console.log(contentIndex);
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.ctrlKey) {
-      e.preventDefault();
-      localStorage.setItem("pages", JSON.stringify(pages));
-
-      if (pageIndex !== undefined) {
-        if (type === "title") {
-          pages[pageIndex].contents[0].title = content;
-          localStorage.setItem("pages", JSON.stringify(pages));
-        }
-
-        if (contentIndex !== -1 && type === "H-1") {
-          pages[pageIndex].contents[contentIndex].desc = content;
-          localStorage.setItem("pages", JSON.stringify(pages));
-        }
-        if (contentIndex !== -1 && type === "H-2") {
-          pages[pageIndex].contents[contentIndex].desc = content;
-          localStorage.setItem("pages", JSON.stringify(pages));
-        }
-        if (contentIndex !== -1 && type === "H-3") {
-          pages[pageIndex].contents[contentIndex].desc = content;
-          localStorage.setItem("pages", JSON.stringify(pages));
-        }
-        if (contentIndex !== -1 && type === "code") {
-          pages[pageIndex].contents[contentIndex].desc = content;
-          localStorage.setItem("pages", JSON.stringify(pages));
-        }
-        if (contentIndex !== -1 && type === "List") {
-          localStorage.setItem("pages", JSON.stringify(pages));
-          pages[pageIndex].contents[contentIndex].desc = content;
-        }
-      }
-      AddBlocks();
-      ctrlSave.style.right = "1%";
-      setTimeout(() => {
-        ctrlSave.style.right = "-100%";
-      }, 2000);
+  if (type === "title") {
+    page.contents[0].title = content;
+  } else if (id != null) {
+    const contentIndex = page.contents.findIndex((f) => f.id == id);
+    if (contentIndex !== -1) {
+      page.contents[contentIndex].desc = content;
+      page.contents[contentIndex].type =
+        type || page.contents[contentIndex].type;
     }
-  });
+  }
+
+  localStorage.setItem("pages", JSON.stringify(pages));
 }
-/*function to make mulitple blocks with different options */
+
+/* mulitple blocks with different options */
 function AddBlocks() {
   const block = document.createElement("div");
   block.contentEditable = true;
   block.classList.add("block");
   block.dataset.id = id();
   editorContent.appendChild(block);
+
+  const blockId = block.dataset.id;
+
+  // save plain text (no basic option selected) as a paragraph block
+  block.addEventListener("input", () => {
+    const text = block.innerHTML.trim();
+
+    // find or create entry for this block
+    const index = pageObj.contents.findIndex((item) => item.id == blockId);
+    if (index !== -1) {
+      pageObj.contents[index].desc = text;
+      pageObj.contents[index].type =
+        pageObj.contents[index].type || "paragraph";
+    } else {
+      pageObj.contents.push({
+        id: blockId,
+        type: "paragraph",
+        desc: text,
+      });
+    }
+
+    localStorage.setItem("pages", JSON.stringify(pages));
+  });
+
   block.focus();
   block.addEventListener("keydown", (e) => {
     const rect = block.getBoundingClientRect();
@@ -346,27 +353,28 @@ function AddBlocks() {
     }
   });
 
-  document.body.addEventListener("click", (e) => {
+  document.body.addEventListener("click", () => {
     basicOption.style.display = "none";
   });
 }
 
 /*event listeners of basic options */
 headingOne.addEventListener("click", () => {
-  console.log(activeDesc);
   if (!activeBlock) return;
   const blockId = activeBlock.dataset.id;
   activeBlock.className = "block H-1";
   basicOption.style.display = "none";
-  activeBlock.addEventListener("input", (e) => {
+  activeBlock.addEventListener("input", () => {
     saveOptions(blockId, activeBlock.innerHTML.trim(), "H-1");
   });
 });
+
 function saveOptions(id, data, type) {
   const index = pageObj.contents.findIndex((item) => item.id == id);
 
   if (index !== -1) {
     pageObj.contents[index].desc = data;
+    pageObj.contents[index].type = type;
   } else {
     pageObj.contents.push({
       id: id,
@@ -383,7 +391,7 @@ headingTwo.addEventListener("click", () => {
   const blockId = activeBlock.dataset.id;
   activeBlock.className = "block H-2";
   basicOption.style.display = "none";
-  activeBlock.addEventListener("input", (e) => {
+  activeBlock.addEventListener("input", () => {
     saveOptions(blockId, activeBlock.innerHTML.trim(), "H-2");
   });
 });
@@ -393,10 +401,11 @@ headingThree.addEventListener("click", () => {
   const blockId = activeBlock.dataset.id;
   activeBlock.className = "block H-3";
   basicOption.style.display = "none";
-  activeBlock.addEventListener("input", (e) => {
+  activeBlock.addEventListener("input", () => {
     saveOptions(blockId, activeBlock.innerHTML.trim(), "H-3");
   });
 });
+
 list.addEventListener("click", () => {
   if (!activeBlock) return;
 
@@ -415,64 +424,62 @@ list.addEventListener("click", () => {
     saveOptions(blockId, text, "List");
   });
 });
-checkboxContent.addEventListener("click", (e) => {
-  checkboxContent.addEventListener("click", () => {
-    if (!activeBlock) return;
 
-    const blockId = activeBlock.dataset.id;
+checkboxContent.addEventListener("click", () => {
+  if (!activeBlock) return;
 
-    activeBlock.className = "block checkbox-type";
-    basicOption.style.display = "none";
+  const blockId = activeBlock.dataset.id;
 
-    // Create checkbox HTML
-    activeBlock.innerHTML = `
+  activeBlock.className = "block checkbox-type";
+  basicOption.style.display = "none";
+
+  activeBlock.innerHTML = `
     <div class="checkbox-item">
       <input type="checkbox" class="check-input" />
       <span class="check-text" contenteditable="true"></span>
     </div>
   `;
 
-    const checkInput = activeBlock.querySelector(".check-input");
-    const checkText = activeBlock.querySelector(".check-text");
+  const checkInput = activeBlock.querySelector(".check-input");
+  const checkText = activeBlock.querySelector(".check-text");
 
-    checkText.focus();
+  checkText.focus();
 
-    saveOptions(blockId, { text: "", checked: false }, "checkbox");
+  saveOptions(blockId, { text: "", checked: false }, "checkbox");
 
-    checkText.addEventListener("input", () => {
-      console.log(checkText.innerText``);
+  checkText.addEventListener("input", () => {
+    saveOptions(
+      blockId,
+      {
+        text: checkText.innerText.trim(),
+        checked: checkInput.checked,
+      },
+      "checkbox"
+    );
+  });
 
-      saveOptions(
-        blockId,
-        {
-          text: checkText.innerText.trim(),
-          checked: checkInput.checked,
-        },
-        "checkbox"
-      );
-    });
-
-    checkInput.addEventListener("change", () => {
-      saveOptions(
-        blockId,
-        {
-          text: checkText.innerText.trim(),
-          checked: checkInput.checked,
-        },
-        "checkbox"
-      );
-    });
+  checkInput.addEventListener("change", () => {
+    saveOptions(
+      blockId,
+      {
+        text: checkText.innerText.trim(),
+        checked: checkInput.checked,
+      },
+      "checkbox"
+    );
   });
 });
+
 code.addEventListener("click", () => {
   if (!activeBlock) return;
   const blockId = activeBlock.dataset.id;
   activeBlock.className = "block code";
   basicOption.style.display = "none";
-  activeBlock.addEventListener("input", (e) => {
+  activeBlock.addEventListener("input", () => {
     saveOptions(blockId, activeBlock.innerHTML.trim(), "code");
   });
 });
+
 /* page creation button */
 addPage.addEventListener("click", () => {
   pageCreate();
@@ -509,9 +516,9 @@ function displayPages() {
       editerHeader.style.opacity = 1;
       editorContent.innerHTML = "";
       const findPage = pages.find((f) => f.id === item.id);
-      console.log(findPage);
       const pageIndex = pages.findIndex((f) => f.id === item.id);
       pageObj = findPage;
+      currentPageIndex = pageIndex;
 
       if (!findPage) return;
 
@@ -549,6 +556,7 @@ function displayPages() {
           editorContent.parentNode.insertBefore(IconElem, editorContent);
         }
       }
+
       findPage.contents.forEach((page) => {
         if (page.type === "h1") {
           const h1title = document.createElement("h1");
@@ -574,7 +582,7 @@ function displayPages() {
             bindTitle.innerText = slicedInner;
             headEditTitle.innerText = slicedInner;
             editboxInput.value = content;
-            saveContent(pageIndex, content);
+            saveContent(pageIndex, content, "title");
           });
         }
         if (page.type === "H-1") {
@@ -584,9 +592,8 @@ function displayPages() {
           block.className = page.type === "H-1" ? `${page?.type} block` : "";
           block.contentEditable = true;
           editorContent.appendChild(block);
-          block.addEventListener("input", (e) => {
+          block.addEventListener("input", () => {
             const content = block.innerHTML;
-
             saveContent(pageIndex, content, "H-1", page.id);
           });
         }
@@ -597,7 +604,7 @@ function displayPages() {
           block.className = page.type === "H-2" ? `${page?.type} block` : "";
           block.contentEditable = true;
           editorContent.appendChild(block);
-          block.addEventListener("input", (e) => {
+          block.addEventListener("input", () => {
             const content = block.innerHTML;
             saveContent(pageIndex, content, "H-2", page.id);
           });
@@ -609,7 +616,7 @@ function displayPages() {
           block.className = page.type === "H-3" ? `${page?.type} block` : "";
           block.contentEditable = true;
           editorContent.appendChild(block);
-          block.addEventListener("input", (e) => {
+          block.addEventListener("input", () => {
             const content = block.innerHTML;
             saveContent(pageIndex, content, "H-3", page.id);
           });
@@ -621,7 +628,7 @@ function displayPages() {
           block.className = page.type === "code" ? `${page?.type} block` : "";
           block.contentEditable = true;
           editorContent.appendChild(block);
-          block.addEventListener("input", (e) => {
+          block.addEventListener("input", () => {
             const content = block.innerHTML;
             saveContent(pageIndex, content, "code", page.id);
           });
@@ -634,15 +641,77 @@ function displayPages() {
           block.className = page.type === "List" ? `block List-Type` : "";
           block.contentEditable = true;
           editorContent.appendChild(block);
-          block.addEventListener("input", (e) => {
+          block.addEventListener("input", () => {
             const content = block.innerHTML;
             saveContent(pageIndex, content, "List", page.id);
+          });
+        }
+        if (page.type === "paragraph") {
+          const block = document.createElement("div");
+          block.dataset.id = page.id;
+          block.innerHTML = page.desc || "";
+          block.className = "block";
+          block.contentEditable = true;
+          editorContent.appendChild(block);
+
+          block.addEventListener("input", () => {
+            const text = block.innerHTML.trim();
+            const index = pageObj.contents.findIndex(
+              (item) => item.id == page.id
+            );
+            if (index !== -1) {
+              pageObj.contents[index].desc = text;
+            }
+            localStorage.setItem("pages", JSON.stringify(pages));
+          });
+        }
+
+        if (page.type === "checkbox") {
+          const block = document.createElement("div");
+          block.dataset.id = page.id;
+          block.className = "block checkbox-type";
+          block.contentEditable = true;
+          const checked = page.desc.checked ? "checked" : "";
+          block.innerHTML = `
+            <div class="checkbox-item">
+              <input type="checkbox" class="check-input" ${checked} />
+              <span class="check-text" contenteditable="true">${
+                page.desc.text || ""
+              }</span>
+            </div>
+          `;
+          editorContent.appendChild(block);
+
+          const checkInput = block.querySelector(".check-input");
+          const checkText = block.querySelector(".check-text");
+
+          checkText.addEventListener("input", () => {
+            saveOptions(
+              page.id,
+              {
+                text: checkText.innerText.trim(),
+                checked: checkInput.checked,
+              },
+              "checkbox"
+            );
+          });
+
+          checkInput.addEventListener("change", () => {
+            saveOptions(
+              page.id,
+              {
+                text: checkText.innerText.trim(),
+                checked: checkInput.checked,
+              },
+              "checkbox"
+            );
           });
         }
       });
     });
   });
 }
+
 function searchEnable() {
   searchTab.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -651,14 +720,12 @@ function searchEnable() {
   searchBar.addEventListener("click", (e) => {
     e.stopPropagation();
   });
-  document.body.addEventListener("click", (e) => {
+  document.body.addEventListener("click", () => {
     searchBar.style.display = "none";
   });
   searchInput.addEventListener("input", (e) => {
-    const value = e.target.value.trim().toLowerCase();
-
-    // Clear results
     searchArea.innerHTML = "";
+    const value = e.target.value.trim().toLowerCase();
 
     if (value === "") return;
 
@@ -677,16 +744,59 @@ function searchEnable() {
       pageElem.id = searchedPage.id;
 
       pageElem.innerHTML = `
-      <i class="ri-pages-line"></i>
-      <p>${highlight(searchedPage.contents[0].title, value)}</p>
-    `;
+        <i class="ri-pages-line"></i>
+        <p>${highlight(searchedPage.contents[0].title, value)}</p>
+      `;
 
       pageElem.addEventListener("click", () => {
-        console.log("clicked", searchedPage.id);
+        const pageTab = document.querySelector(`#${searchedPage.id}`);
+        if (pageTab) {
+          pageTab.click();
+          searchBar.style.display = "none";
+        }
       });
 
       searchArea.appendChild(pageElem);
     }
+  });
+}
+
+/* Enter handler */
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.ctrlKey) {
+    if (!editor.contains(document.activeElement)) return;
+
+    e.preventDefault();
+
+    localStorage.setItem("pages", JSON.stringify(pages));
+
+    AddBlocks();
+
+    ctrlSave.style.right = "1%";
+    setTimeout(() => {
+      ctrlSave.style.right = "-100%";
+    }, 2000);
+  }
+});
+const savedTheme = localStorage.getItem("theme") || "dark";
+document.body.setAttribute("data-theme", savedTheme);
+if (themeToggle) {
+  themeToggle.innerHTML =
+    savedTheme === "dark"
+      ? ' <i class="ri-sun-line"></i>'
+      : '<i class="ri-moon-line"></i>';
+
+  themeToggle.addEventListener("click", () => {
+    const current = document.body.getAttribute("data-theme") || "dark";
+    const next = current === "dark" ? "light" : "dark";
+
+    document.body.setAttribute("data-theme", next);
+    localStorage.setItem("theme", next);
+
+    themeToggle.innerHTML =
+      next === "dark"
+        ? '<i class="ri-sun-line"></i>'
+        : '<i class="ri-moon-line"></i>';
   });
 }
 searchEnable();

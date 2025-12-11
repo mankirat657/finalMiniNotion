@@ -6,13 +6,13 @@
 }
 :root {
   /* BACKGROUND COLORS */
-  --primaryBackground: #0a0f14;
-  --secondaryBackground: #0f1720;
-  --verylightBackground: #1a2633;
-  --verylightBackgroundtwo: #20304a;
-  --lightBackground: #0d121a;
-  --darkbackground: #050810;
-  --verydarkBackground: #020409;
+  --primaryBackground: #050013;
+  --secondaryBackground: #090020;
+  --verylightBackground: #14122b;
+  --verylightBackgroundtwo: #1a1840;
+  --lightBackground: #0b071f;
+  --darkbackground: #020010;
+  --verydarkBackground: #000008;
   --veryverydarkBackground: #000000;
   --glassEffect: #18202f80;
   /*BRAND COLORS */
@@ -24,12 +24,11 @@
   --successColor: #32ff7e;
   --infoColor: #1e90ff;
 
-  --textPrimary: #e0f7ff;
-  --textSecondary: #81e6d9;
-  --textMuted: #7b8ca1;
+  --textPrimary: #e5e7ff;
+  --textSecondary: #a5b4fc;
+  --textMuted: #8b8db3;
   --textWhite: #ffffff;
-  --textAccent: #ff6ec7;
-
+  --textAccent: #ff6bff;
   /* BORDERS & SHADOWS =*/
   --borderPrimary: #2a384c;
 
@@ -60,6 +59,30 @@
   --rounded-xl: 20px;
   --rounded-2xl: 26px;
   --rounded-full: 50%;
+}
+body[data-theme="light"] {
+  --primaryBackground: #f5f7fb;
+  --secondaryBackground: #ffffff;
+  --verylightBackground: #e4ecf7;
+  --verylightBackgroundtwo: #d7e2f2;
+  --lightBackground: #f0f4ff;
+  --darkbackground: #dbe3f2;
+  --verydarkBackground: #c3cee3;
+  --veryverydarkBackground: #ffffff;
+
+  --primaryColor: #2563eb;
+  --secondaryColor: #0ea5e9;
+  --accentColor: #ec4899;
+
+  --textPrimary: #0f172a;
+  --textSecondary: #1e293b;
+  --textMuted: #1f2226;
+  --textWhite: #ffffff;
+  --textAccent: #db2777;
+
+  --borderPrimary: #cbd5e1;
+
+  --glassEffect: rgba(255, 255, 255, 0.8);
 }
 
 body,
@@ -236,7 +259,7 @@ body i {
 #editor {
   width: 76%;
   height: 100%;
-  padding: var(--space-3xl);
+  padding: var(--space-2xl);
   position: relative;
 }
 .initialText {
@@ -408,6 +431,8 @@ body i {
 }
 .editor-content {
   position: relative;
+  height: 60vh;
+  overflow-y: auto;
 }
 .bannerOptions {
   gap: var(--space-xs);
@@ -593,4 +618,15 @@ body i {
   color: var(--primaryColor);
   font-weight: bold;
   background: none;
+}
+.selected {
+  background-color: var(--verylightBackgroundtwo);
+}
+.darklightmode {
+  padding: var(--space-xsx);
+  border-radius: var(--rounded-xs);
+}
+.darklightmode:hover {
+  background-color: var(--verylightBackground);
+  cursor: pointer;
 }
