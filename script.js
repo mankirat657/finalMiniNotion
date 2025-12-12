@@ -3,7 +3,6 @@ let isResize = false;
 const sidebar = document.querySelector("#sidebar");
 const min = 307;
 const max = 460;
-
 const dataTooltip = document.querySelectorAll("[data-toolTip]");
 const toolTip = document.querySelector("#toolTip");
 const private = document.querySelector(".private");
@@ -33,7 +32,8 @@ const searchInput = document.querySelector("#SearchInput");
 const searchArea = document.querySelector(".searched-pages");
 const pageOptions = document.querySelectorAll(".page-options");
 const themeToggle = document.querySelector(".darklightmode");
-
+const contextMenu = document.querySelector("#contextMenu");
+const deletepage = document.querySelector("#delete");
 let pages = JSON.parse(localStorage.getItem("pages")) || [];
 let pageObj = null;
 let currentBindTitle = null;
@@ -575,7 +575,7 @@ function displayTab() {
   displayPages();
 }
 
-/* display page + blocks */
+/* display pages main part */
 function displayPages() {
   const currentPages = document.querySelectorAll(".page-options");
   const pageExceptFirst = [...currentPages].slice(1);
@@ -588,6 +588,7 @@ function displayPages() {
       const pageIndex = pages.findIndex((f) => f.id === item.id);
       pageObj = findPage;
       currentPageIndex = pageIndex;
+      console.log(item);
 
       if (!findPage) return;
 
@@ -798,10 +799,25 @@ function displayPages() {
         }
       });
     });
+    item.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const rect = item.getBoundingClientRect();
+      contextMenu.style.display = "flex";
+      contextMenu.style.top = rect.top + "px";
+      contextMenu.style.left = rect.left + 150 + "px";
+      deletepage.addEventListener("click", (e) => {
+        const findRemainingPages = pages.filter((f) => f.id !== item.id);
+        localStorage.setItem("pages", JSON.stringify(findRemainingPages));
+        location.reload();
+      });
+    });
+    document.body.addEventListener("click", () => {
+      contextMenu.style.display = "none";
+    });
   });
 }
 
-/* drag over/drop on editorContent */
 editorContent.addEventListener("dragover", (e) => {
   e.preventDefault();
   if (!draggedBlock) return;
@@ -881,7 +897,6 @@ function searchEnable() {
   });
 }
 
-/* Enter handler: new block */
 document.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.ctrlKey) {
     if (!editor.contains(document.activeElement)) return;
@@ -899,7 +914,6 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-/* theme toggle */
 const savedTheme = localStorage.getItem("theme") || "dark";
 document.body.setAttribute("data-theme", savedTheme);
 if (themeToggle) {
@@ -921,8 +935,98 @@ if (themeToggle) {
         : '<i class="ri-moon-line"></i>';
   });
 }
+/*work of shapeTool */
+const shapeToolWin = document.querySelector("#shapeToolEditorWindow");
+const shapeToolEdit = document.querySelector("#shapeToolEdit");
+const closeWin = document.querySelector("#closewin");
+const maximizewin = document.querySelector("#maximizewin");
+const squareTool = document.querySelector("#squareTool");
+let initialX;
+let initialY;
+let isSquareActivated = false;
+let ismaximize = true;
+let square = null;
+function shapeToolEditorDisplay() {
+  shapeToolEdit.addEventListener("click", (e) => {
+    e.stopPropagation();
+    shapeToolWin.style.display = "block";
+  });
+  shapeToolWin.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+  closeWin.addEventListener("click", () => {
+    shapeToolWin.style.display = "none";
+  });
+  document.body.addEventListener("click", (e) => {
+    shapeToolWin.style.display = "none";
+  });
+  maximizewin.addEventListener("click", (e) => {
+    if (ismaximize === true) {
+      shapeToolWin.style.width = "100%";
+      shapeToolWin.style.height = "100%";
+      ismaximize = false;
+    } else {
+      shapeToolWin.style.width = "80%";
+      shapeToolWin.style.height = "80%";
+      ismaximize = true;
+    }
+  });
+}
+/*toolsActivation listners */
+squareTool.addEventListener("click", (e) => {
+  isSquareActivated = true;
+  document.body.style.cursor = "crosshair";
+  squareShape();
+});
+function startSquare(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  if (!isSquareActivated) return;
+  const rect = shapeToolWin.getBoundingClientRect();
 
+  initialX = e.clientX - rect.left;
+  initialY = e.clientY - rect.top;
+
+  square = document.createElement("div");
+  square.classList.add("square");
+  square.style.position = "absolute";
+  square.style.left = initialX + "px";
+  square.style.top = initialY + "px";
+  shapeToolWin.appendChild(square);
+}
+
+function drawSquare(e) {
+  if (!square) return;
+  const rect = shapeToolWin.getBoundingClientRect();
+  let currentX = e.clientX - rect.left;
+  let currentY = e.clientY - rect.top;
+
+  let width = Math.abs(currentX - initialX);
+  let height = Math.abs(currentY - initialY);
+
+  square.style.width = width + "px";
+  square.style.height = height + "px";
+
+  if (currentX < initialX) {
+    square.style.left = currentX + "px";
+  }
+  if (currentY < initialY) {
+    square.style.top = currentY + "px";
+  }
+}
+
+function stopSquare() {
+  square = null;
+}
+
+function squareShape() {
+  if (!isSquareActivated) return;
+  shapeToolWin.addEventListener("mousedown", startSquare);
+  shapeToolWin.addEventListener("mousemove", drawSquare);
+  shapeToolWin.addEventListener("mouseup", stopSquare);
+}
 /* init */
+shapeToolEditorDisplay();
 searchEnable();
 maximizeSidebar();
 toolTipGenerator(dataTooltip);

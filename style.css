@@ -102,7 +102,7 @@ main {
   height: 100vh;
   background-color: var(--secondaryBackground);
   border: 1.3px solid var(--borderPrimary);
-  padding: 0 var(--space-xs);
+  padding: var(--space-xs);
   position: sticky;
   top: 0;
   left: 0;
@@ -325,7 +325,7 @@ body i {
   color: var(--textMuted);
   font-size: 0.8rem;
   width: 100%;
-  padding: var(--space-xs);
+  padding: var(--space-xsx) var(--space-xs);
   opacity: 0;
 }
 .editor-header-logo {
@@ -389,8 +389,8 @@ body i {
   background-color: var(--verylightBackgroundtwo);
 }
 .editbox {
-  padding: var(--space-xsx) var(--space-xs);
-  width: 22vw;
+  padding: var(--space-xs) var(--space-xs);
+  width: 26vw;
   background-color: var(--verylightBackground);
   position: absolute;
   left: 0;
@@ -402,6 +402,7 @@ body i {
   align-items: center;
   gap: var(--space-xs);
   display: none;
+  z-index: 100;
 }
 .editbox .pageicon {
   padding: var(--space-xsx);
@@ -682,4 +683,121 @@ body i {
 
 .editor-content ul li {
   display: list-item;
+}
+#contextMenu {
+  color: var(--textMuted);
+  background-color: var(--verylightBackground);
+  padding: var(--space-xs) var(--space-xs);
+  font-size: 0.8rem;
+  border-radius: var(--rounded-xs);
+  width: fit-content;
+  border: 1px solid var(--borderPrimary);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadowStrong);
+  position: absolute;
+  display: none;
+}
+#contextMenu .newPage {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xsx);
+  padding: var(--space-xs);
+  border-radius: var(--rounded-xs);
+}
+#contextMenu .newPage:hover {
+  background-color: var(--verylightBackgroundtwo);
+  cursor: pointer;
+}
+.bordernone {
+  border: none !important;
+}
+#shapeToolEdit {
+  padding: var(--space-xsx);
+  color: var(--textMuted);
+}
+#shapeToolEdit .Tool {
+  display: flex;
+  font-size: 0.8rem;
+  gap: var(--space-xsx);
+  border-radius: var(--rounded-s);
+  padding: var(--space-xs);
+}
+#shapeToolEdit .Tool:hover {
+  cursor: pointer;
+  background-color: var(--verylightBackgroundtwo);
+}
+#shapeToolEditorWindow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 90%;
+  height: 90%;
+  transform: translate(-50%, -50%);
+  background-color: var(--glassEffect);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--borderPrimary);
+  z-index: 1000;
+  border-radius: var(--rounded-m);
+  display: none;
+  overflow: hidden;
+  resize: both;
+}
+.shapeToolHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-xs);
+  font-size: 0.8rem;
+}
+.shapeToolHeader .logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--textMuted);
+}
+.closeOptions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.closeOptions i {
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.optionsTray {
+  position: absolute;
+  bottom: 2%;
+  left: 50%;
+  width: fit-content;
+  margin: auto;
+  height: 9vh;
+  border-radius: var(--rounded-s);
+  background-color: var(--glassEffect);
+  border: 1px solid var(--borderPrimary);
+  transform: translate(-50%, 0%);
+  display: flex;
+  align-items: center;
+  padding: var(--space-xs);
+}
+.optionsTray .tray-op-1 i {
+  font-size: 1.4rem;
+}
+.optionsTray .tray-op-1 {
+  padding: var(--space-xs);
+  border-radius: var(--rounded-s);
+}
+.trayItemactive {
+  background-color: var(--verylightBackground);
+}
+.optionsTray .tray-op-1:hover {
+  transition: all 0.2s ease-in-out;
+  background-color: var(--verylightBackground);
+  cursor: pointer;
+}
+.square {
+  border: 1.5px solid var(--secondaryBackground);
+  background-color: var(--verylightBackground);
+  position: absolute;
 }

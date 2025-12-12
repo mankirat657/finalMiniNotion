@@ -70,6 +70,22 @@
         <div id="maximize">
           <i class="ri-expand-left-right-fill"></i>
         </div>
+        <div id="contextMenu">
+          <div class="newPage">
+            <i class="ri-file-add-line"></i>
+            <p>New Page</p>
+          </div>
+          <div id="delete" class="newPage bordernone">
+            <i class="ri-delete-bin-6-line"></i>
+            <p>DeletePage</p>
+          </div>
+        </div>
+        <div id="shapeToolEdit">
+          <div class="Tool">
+            <i class="ri-shape-fill"></i>
+            <p>Open shape editor</p>
+          </div>
+        </div>
       </div>
       <div id="editor">
         <div id="editor-header">
@@ -168,6 +184,38 @@
       <div id="toolTip"></div>
       <div id="ctrlSave">Changes Saved</div>
     </main>
+    <div id="shapeToolEditorWindow" draggable="true">
+      <div class="shapeToolHeader">
+        <div class="logo">
+          <i class="ri-shapes-fill"></i>
+          <p>Kirats' shapeTool editor</p>
+        </div>
+        <div class="closeOptions">
+          <i id="maximizewin" class="ri-fullscreen-fill"></i>
+          <i id="closewin" class="ri-close-circle-fill"></i>
+        </div>
+      </div>
+      <div class="optionsTray">
+        <div class="tray-op-1">
+          <i class="ri-cursor-line"></i>
+        </div>
+        <div id="squareTool" class="tray-op-1">
+          <i class="ri-square-line"></i>
+        </div>
+        <div class="tray-op-1">
+          <i class="ri-t-box-fill"></i>
+        </div>
+        <div class="tray-op-1">
+          <i class="ri-mark-pen-line"></i>
+        </div>
+        <div class="tray-op-1">
+          <i class="ri-artboard-2-line"></i>
+        </div>
+        <div class="tray-op-1">
+          <i class="ri-chat-1-line"></i>
+        </div>
+      </div>
+    </div>
     <script src="script.js"></script>
   </body>
 </html>
