@@ -742,6 +742,7 @@ body i {
   display: none;
   overflow: hidden;
   resize: both;
+  box-shadow: var(--shadowStrong);
 }
 .shapeToolHeader {
   display: flex;
@@ -750,6 +751,11 @@ body i {
   width: 100%;
   padding: var(--space-xs);
   font-size: 0.8rem;
+
+  background-color: var(--primaryBackground);
+  position: relative;
+  z-index: 100;
+  border: 1.2px solid var(--borderPrimary);
 }
 .shapeToolHeader .logo {
   display: flex;
@@ -780,6 +786,8 @@ body i {
   display: flex;
   align-items: center;
   padding: var(--space-xs);
+  z-index: 100;
+  box-shadow: var(--shadowSoft);
 }
 .optionsTray .tray-op-1 i {
   font-size: 1.4rem;
@@ -800,4 +808,72 @@ body i {
   border: 1.5px solid var(--secondaryBackground);
   background-color: var(--verylightBackground);
   position: absolute;
+}
+.handleOne {
+  width: 1.5vh;
+  height: 1.5vh;
+  border: 1.8px solid var(--infoColor);
+  position: absolute;
+  top: -1.5%;
+  left: -1.5%;
+  background-color: var(--secondaryBackground);
+  cursor: se-resize;
+}
+.handleTwo {
+  width: 1.5vh;
+  height: 1.5vh;
+  border: 1.8px solid var(--infoColor);
+  position: absolute;
+  top: -1.5%;
+  right: -1.5%;
+  background-color: var(--secondaryBackground);
+  cursor: ne-resize;
+}
+.handleThree {
+  width: 1.5vh;
+  height: 1.5vh;
+  border: 1.8px solid var(--infoColor);
+  position: absolute;
+  bottom: -1.5%;
+  left: -1.5%;
+  background-color: var(--secondaryBackground);
+  cursor: sw-resize;
+}
+.handleFour {
+  width: 1.5vh;
+  height: 1.5vh;
+  border: 1.8px solid var(--infoColor);
+  position: absolute;
+  bottom: -1.5%;
+  right: -1.5%;
+  background-color: var(--secondaryBackground);
+  cursor: se-resize;
+}
+.tabTray {
+  width: fit-content;
+  font-size: 0.8rem;
+  padding: var(--space-xs);
+  border-radius: var(--rounded-2xl);
+  background-color: var(--glassEffect);
+  backdrop-filter: blur(5px);
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0%);
+  display: flex;
+  align-items: center;
+  z-index: 100;
+  box-shadow: var(--shadowSoft);
+}
+.tabTray .pageTab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xsx);
+  padding: var(--space-xs);
+  background-color: var(--verylightBackground);
+  border-radius: var(--rounded-l);
+  color: var(--textMuted);
+}
+.tabTray .pageTab:hover {
+  background-color: var(--borderPrimary);
+  cursor: pointer;
 }

@@ -941,11 +941,22 @@ const shapeToolEdit = document.querySelector("#shapeToolEdit");
 const closeWin = document.querySelector("#closewin");
 const maximizewin = document.querySelector("#maximizewin");
 const squareTool = document.querySelector("#squareTool");
+let startX, startY;
+let startWidth, startHeight;
+let startLeft, startTop;
 let initialX;
 let initialY;
 let isSquareActivated = false;
 let ismaximize = true;
 let square = null;
+let isDrawing = false;
+let isResizing = false;
+let activeHandle = null;
+let activeSquare = null;
+let isSquareMove = false;
+let activeMoveSquare = null;
+let moveOffsetX = 0;
+let moveOffsetY = 0;
 function shapeToolEditorDisplay() {
   shapeToolEdit.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -977,11 +988,14 @@ squareTool.addEventListener("click", (e) => {
   isSquareActivated = true;
   document.body.style.cursor = "crosshair";
   squareShape();
+  squareTool.classList.add("trayItemactive");
 });
 function startSquare(e) {
   e.stopPropagation();
   e.preventDefault();
-  if (!isSquareActivated) return;
+  if (!isSquareActivated || isResizing) return;
+
+  isDrawing = true;
   const rect = shapeToolWin.getBoundingClientRect();
 
   initialX = e.clientX - rect.left;
@@ -996,7 +1010,8 @@ function startSquare(e) {
 }
 
 function drawSquare(e) {
-  if (!square) return;
+  if (!isDrawing || !square || isResizing) return;
+
   const rect = shapeToolWin.getBoundingClientRect();
   let currentX = e.clientX - rect.left;
   let currentY = e.clientY - rect.top;
@@ -1016,14 +1031,131 @@ function drawSquare(e) {
 }
 
 function stopSquare() {
-  square = null;
+  isDrawing = false;
+  document.body.style.cursor = "auto";
+
+  const currentSquare = shapeToolWin.querySelector(".square:last-child");
+  if (!currentSquare) return;
+
+  addResizeHandles(currentSquare);
+  moveSquare(currentSquare);
 }
+function addResizeHandles(square) {
+  ["handleOne", "handleTwo", "handleThree", "handleFour"].forEach((pos) => {
+    const handle = document.createElement("div");
+    handle.className = pos;
+    square.appendChild(handle);
+
+    handle.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+
+      isResizing = true;
+      activeHandle = pos;
+      activeSquare = square;
+
+      startX = e.clientX;
+      startY = e.clientY;
+
+      startWidth = square.offsetWidth;
+      startHeight = square.offsetHeight;
+      startLeft = square.offsetLeft;
+      startTop = square.offsetTop;
+    });
+  });
+}
+function moveSquare(square) {
+  if (!square) return;
+
+  square.addEventListener("mousedown", (e) => {
+    // block move during resize
+    if (isResizing) return;
+
+    e.stopPropagation();
+    e.preventDefault();
+
+    isSquareMove = true;
+    activeMoveSquare = square;
+    document.body.style.cursor = "grabbing";
+
+    const rect = square.getBoundingClientRect();
+    moveOffsetX = e.clientX - rect.left;
+    moveOffsetY = e.clientY - rect.top;
+  });
+}
+document.addEventListener("mousemove", (e) => {
+  if (!isSquareMove || !activeMoveSquare) return;
+
+  const parentRect = shapeToolWin.getBoundingClientRect();
+
+  let newLeft = e.clientX - parentRect.left - moveOffsetX;
+  let newTop = e.clientY - parentRect.top - moveOffsetY;
+
+  newLeft = Math.max(
+    0,
+    Math.min(newLeft, parentRect.width - activeMoveSquare.offsetWidth)
+  );
+  newTop = Math.max(
+    0,
+    Math.min(newTop, parentRect.height - activeMoveSquare.offsetHeight)
+  );
+
+  activeMoveSquare.style.left = newLeft + "px";
+  activeMoveSquare.style.top = newTop + "px";
+});
+document.addEventListener("mouseup", () => {
+  isSquareMove = false;
+  activeMoveSquare = null;
+  document.body.style.cursor = "auto";
+});
+
+document.addEventListener("mousemove", (e) => {
+  if (!isResizing || !activeSquare) return;
+
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+
+  switch (activeHandle) {
+    case "handleFour":
+      activeSquare.style.width = startWidth + dx + "px";
+      activeSquare.style.height = startHeight + dy + "px";
+      break;
+
+    case "handleThree":
+      activeSquare.style.width = startWidth - dx + "px";
+      activeSquare.style.height = startHeight + dy + "px";
+      activeSquare.style.left = startLeft + dx + "px";
+      break;
+
+    case "handleTwo":
+      activeSquare.style.width = startWidth + dx + "px";
+      activeSquare.style.height = startHeight - dy + "px";
+      activeSquare.style.top = startTop + dy + "px";
+      break;
+
+    case "handleOne":
+      activeSquare.style.width = startWidth - dx + "px";
+      activeSquare.style.height = startHeight - dy + "px";
+      activeSquare.style.left = startLeft + dx + "px";
+      activeSquare.style.top = startTop + dy + "px";
+      break;
+  }
+});
+
+document.addEventListener("mouseup", () => {
+  isResizing = false;
+  activeHandle = null;
+  activeSquare = null;
+});
 
 function squareShape() {
   if (!isSquareActivated) return;
   shapeToolWin.addEventListener("mousedown", startSquare);
   shapeToolWin.addEventListener("mousemove", drawSquare);
   shapeToolWin.addEventListener("mouseup", stopSquare);
+  document.body.addEventListener("click", (e) => {
+    document.body.style.cursor = "auto";
+  });
 }
 /* init */
 shapeToolEditorDisplay();
