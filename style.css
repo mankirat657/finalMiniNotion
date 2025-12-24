@@ -809,6 +809,12 @@ body i {
   background-color: var(--verylightBackground);
   position: absolute;
 }
+.circle {
+  border: 1.5px solid var(--secondaryBackground);
+  background-color: var(--verylightBackground);
+  position: absolute;
+  border-radius: var(--rounded-full);
+}
 .handleOne {
   width: 1.5vh;
   height: 1.5vh;
