@@ -1171,8 +1171,24 @@ function addMoveHandler(shape) {
 }
 
 /* Save function */
-function saveShape(idVal, width, height, left, top, type = "square") {
-  const shape = { id: idVal, Xaxis: left, yaxis: top, width, height, type };
+function saveShape(
+  idVal,
+  width,
+  height,
+  left,
+  top,
+  type = "square",
+  innerText = ""
+) {
+  const shape = {
+    id: idVal,
+    Xaxis: left,
+    yaxis: top,
+    width,
+    height,
+    type,
+    innerText: innerText || "new",
+  };
 
   const existingIndex = Details.findIndex((s) => s.id === idVal);
   if (existingIndex !== -1) {
@@ -1187,8 +1203,9 @@ function saveShape(idVal, width, height, left, top, type = "square") {
 function displayShapes() {
   if (!Array.isArray(Details)) return;
 
-  // Clear existing shapes
-  const existingShapes = shapeToolWin.querySelectorAll(".square, .circle");
+  const existingShapes = shapeToolWin.querySelectorAll(
+    ".square, .circle, .textcret"
+  );
   existingShapes.forEach((shape) => shape.remove());
 
   Details.forEach((item) => {
@@ -1197,6 +1214,14 @@ function displayShapes() {
 
     if (item.type === "circle") {
       shape.classList.add("circle");
+    } else if (item.type === "text") {
+      shape.classList.add("textcret");
+      shape.contentEditable = true;
+      shape.innerHTML = item.innerText;
+      shape.style.minWidth = "50px";
+      shape.style.minHeight = "20px";
+      shape.style.padding = "2px";
+      shape.style.outline = "none";
     } else {
       shape.classList.add("square");
     }
@@ -1218,7 +1243,11 @@ function displayShapes() {
     });
   });
 }
+
 shapeToolWin.addEventListener("mousedown", (e) => {
+  if (isTextDrawing) {
+    return;
+  }
   if (isSquareActivated) {
     startSquare(e);
     return;
@@ -1228,13 +1257,10 @@ shapeToolWin.addEventListener("mousedown", (e) => {
     return;
   }
 });
-
 document.addEventListener("mousemove", (e) => {
-  // Drawing
   if (isDrawing && square) drawSquare(e);
   if (isCircDrawing && circle) drawCircle(e);
 
-  // Moving
   if (isSquareMove && activeMoveSquare) {
     const parentRect = shapeToolWin.getBoundingClientRect();
     let newLeft = e.clientX - parentRect.left - moveOffsetX;
@@ -1253,7 +1279,6 @@ document.addEventListener("mousemove", (e) => {
     activeMoveSquare.style.top = newTop + "px";
   }
 
-  // Resizing
   if (isResizing && activeSquare) {
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
@@ -1292,6 +1317,8 @@ document.addEventListener("mouseup", () => {
     const rect = activeMoveSquare.getBoundingClientRect();
     const shapeType = activeMoveSquare.classList.contains("circle")
       ? "circle"
+      : activeMoveSquare.classList.contains("textcret")
+      ? "text"
       : "square";
     saveShape(
       activeMoveSquare.id,
@@ -1299,7 +1326,8 @@ document.addEventListener("mouseup", () => {
       activeMoveSquare.offsetHeight,
       rect.left - parentRect.left,
       rect.top - parentRect.top,
-      shapeType
+      shapeType,
+      activeMoveSquare.innerText
     );
   }
 
@@ -1308,6 +1336,8 @@ document.addEventListener("mouseup", () => {
     const rect = activeSquare.getBoundingClientRect();
     const shapeType = activeSquare.classList.contains("circle")
       ? "circle"
+      : activeSquare.classList.contains("textcret")
+      ? "text"
       : "square";
     saveShape(
       activeSquare.id,
@@ -1315,7 +1345,8 @@ document.addEventListener("mouseup", () => {
       activeSquare.offsetHeight,
       rect.left - parentRect.left,
       rect.top - parentRect.top,
-      shapeType
+      shapeType,
+      activeSquare.innerText
     );
   }
 
@@ -1326,7 +1357,62 @@ document.addEventListener("mouseup", () => {
   activeSquare = null;
   document.body.style.cursor = "auto";
 });
+/* text creation option */
+let isTextDrawing = false;
+let textInitX;
+let textInitY;
+let textListenersBound = false;
+const textTool = document.querySelector("#textTool");
+textTool.addEventListener("click", (e) => {
+  e.stopPropagation();
+  isTextDrawing = true;
+  isCircDrawing = false;
+  isCircActivated = false;
+  isSquareActivated = false;
+  squareTool.classList.remove("trayItemactive");
+  circleTool.classList.remove("trayItemactive");
+  textTool.classList.add("trayItemactive");
+  textShape();
+});
+function textShape() {
+  if (textListenersBound) return;
+  textListenersBound = true;
 
+  const handleTextClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    textCreation(e);
+  };
+  shapeToolWin.addEventListener("click", handleTextClick);
+}
+function textCreation(e) {
+  if (!isTextDrawing) return;
+  const parentRect = shapeToolWin.getBoundingClientRect();
+  textInitX = e.clientX - parentRect.left;
+  textInitY = e.clientY - parentRect.top;
+  let text = document.createElement("div");
+  text.id = id();
+  text.innerHTML = "new";
+  text.contentEditable = true;
+  text.classList.add("textcret");
+  text.style.position = "absolute";
+  text.style.left = textInitX + "px";
+  text.style.top = textInitY + "px";
+  shapeToolWin.appendChild(text);
+  text.focus();
+  text.addEventListener("input", (e) => {
+    const textTosave = text.innerHTML;
+    saveShape(
+      text.id,
+      text.clientWidth,
+      text.clientHeight,
+      textInitX,
+      textInitY,
+      "text",
+      textTosave
+    );
+  });
+}
 /* Initialize */
 shapeToolEditorDisplay();
 displayShapes();

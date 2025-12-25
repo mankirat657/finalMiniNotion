@@ -815,6 +815,10 @@ body i {
   position: absolute;
   border-radius: var(--rounded-full);
 }
+.textcret {
+  position: absolute;
+  outline: none;
+}
 .handleOne {
   width: 1.5vh;
   height: 1.5vh;
